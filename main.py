@@ -114,11 +114,14 @@ def main():
         choice = input("$: ")
         if (choice == "addaccount"):
             addaccount(db)
-        elif (choice == "getpassword"):
+        elif (choice == "getpassword"): #just need to return true 
             retrievepassword(db)
+            #if true return user and print that to the file
+            #then launch MM program to display user
+            print("Start MM HERE!!")
         elif (choice == "deleteaccount"):
             deleteaccount(db)
-        elif (choice == "printaccounts"):
+        elif (choice == "printaccounts"): #don't need
             printaccounts(db)
         elif (choice == "quit"):
             return
