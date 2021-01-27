@@ -1,5 +1,7 @@
+#mongo cluster info: https://cloud.mongodb.com/v2/5cbf6a95cf09a2b538fb0bb3#metrics/replicaSet/600de9d9a6646f6c0026b348/explorer/passwordobjects/account/find
 import string
 import secrets
+import os
 import cryptography
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
@@ -116,9 +118,11 @@ def main():
             addaccount(db)
         elif (choice == "getpassword"): #just need to return true 
             retrievepassword(db)
-            #if true return user and print that to the file
+            #if true return user name from DB and print that to the file
             #then launch MM program to display user
-            print("Start MM HERE!!")
+            
+            #os.system('npm start')
+            
         elif (choice == "deleteaccount"):
             deleteaccount(db)
         elif (choice == "printaccounts"): #don't need
