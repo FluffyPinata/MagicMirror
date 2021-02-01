@@ -3,6 +3,8 @@ import string
 import secrets
 import os
 import cryptography
+import flask
+from flask_socketio import SocketIO
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
 from pprint import pprint
@@ -74,7 +76,7 @@ def addaccount(db):
 
 
 # Retrieves the password from the database based on website
-def retrievepassword(db):
+def Signin(db):
     websiteurl = input("Please enter the website url you want the password for: ")
     if (db.account.find_one({'websiteurl': websiteurl})):
         encodeddata = db.account.find_one({'websiteurl': websiteurl})
@@ -106,22 +108,22 @@ def main():
     print("-------------------------------------------")
     print("Welcome to the password manager!")
     print("Manager supports the following commands:")
-    print("addaccount - adds an account using a website url, a username, and a randomly generated password.")
-    print("getpassword - will retrieve the password from the database for usage.")
-    print("deleteaccount - will delete a saved account from the database.")
-    print("printaccounts - will print all websites which have an active account.")
+    print("Addaccount - adds an account using a website url, a username, and a randomly generated password.")
+    print("Signin - will retrieve the password from the database for usage.")
+    print("Deleteaccount - will delete a saved account from the database.")
+    print("Printaccounts - will print all websites which have an active account.")
     print("quit - quits application.")
     print("-------------------------------------------")
     while (1):
         choice = input("$: ")
         if (choice == "addaccount"):
             addaccount(db)
-        elif (choice == "getpassword"): #just need to return true 
-            retrievepassword(db)
-            #if true return user name from DB and print that to the file
-            #then launch MM program to display user
+        elif (choice == "Signin"): #just need to return true 
+            Signin(db)
             
-            #os.system('npm start')
+            
+            #if usernames match
+                #os.system('npm start')
             
         elif (choice == "deleteaccount"):
             deleteaccount(db)
