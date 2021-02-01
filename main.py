@@ -58,49 +58,51 @@ def connectdb():
     return db
 
 
-# Adds a website account to the database
+# Adds a email account to the database
 def addaccount(db):
-    websiteurl = input("Please enter the website url you have the account for: ")
+    email = input("Please enter the email you have the account for: ")
     username = input("Please enter the username for the account: ")
     accountobject = {
-        'websiteurl': websiteurl,
+        'email': email,
         'username': username,
-        'password': encryptpassword()
+        'password': encryptpassword(),
+        'status': 'true'
     }
-    # Check if user already made an account for this website
-    if (db.account.find_one({'websiteurl': accountobject.get('websiteurl')})):
+    # Check if user already made an account for this email
+    if (db.account.find_one({'email': accountobject.get('email')})):
         print("An account for this website already exists.")
     else:
         result = db.account.insert_one(accountobject)
         print("Account successfully created.")
 
 
-# Retrieves the password from the database based on website
+# Retrieves the password from the database based on email
 def Signin(db):
-    websiteurl = input("Please enter the website url you want the password for: ")
-    if (db.account.find_one({'websiteurl': websiteurl})):
-        encodeddata = db.account.find_one({'websiteurl': websiteurl})
+    email = input("Please enter the email you want the password for: ")
+    if (db.account.find_one({'email': email})):
+        encodeddata = db.account.find_one({'email': email})
         presult = decryptpassword(encodeddata.get('password'))
         uresult = encodeddata.get('username')
         print("Your username is: " + uresult)
         print("Your password is: " + presult)
+        
     else:
         print("Couldn't find an account for that website.")
 
 
 def deleteaccount(db):
-    websiteurl = input("Please enter the website url you want to delete the account for: ")
-    if (db.account.delete_one({'websiteurl': websiteurl}).deleted_count != 0):
-        print("Successfully deleted account for " + websiteurl)
+    email = input("Please enter the email you want to delete the account for: ")
+    if (db.account.delete_one({'email': email}).deleted_count != 0):
+        print("Successfully deleted account for " + email)
     else:
-        print("Could not find account for " + websiteurl)
+        print("Could not find account for " + email)
 
 
 def printaccounts(db):
-    print("Here are all websites which have an account:")
+    print("Here are all email which have an account:")
     listaccounts = db.account.find()
     for i in listaccounts:
-        print(i.get('websiteurl'))
+        print(i.get('email'))
 
 
 def main():
@@ -108,7 +110,7 @@ def main():
     print("-------------------------------------------")
     print("Welcome to the password manager!")
     print("Manager supports the following commands:")
-    print("Addaccount - adds an account using a website url, a username, and a randomly generated password.")
+    print("Addaccount - adds an account using a email, a username, and a randomly generated password.")
     print("Signin - will retrieve the password from the database for usage.")
     print("Deleteaccount - will delete a saved account from the database.")
     print("Printaccounts - will print all websites which have an active account.")
