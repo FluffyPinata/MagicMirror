@@ -1,13 +1,31 @@
 #mongo cluster info: https://cloud.mongodb.com/v2/5cbf6a95cf09a2b538fb0bb3#metrics/replicaSet/600de9d9a6646f6c0026b348/explorer/passwordobjects/account/find
+#using nodejs and flask to communicate information
 import string
 import secrets
 import os
+import json
 import cryptography
 import flask
 from flask_socketio import SocketIO
+from flask import Flask, render_template, request
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
 from pprint import pprint
+app = Flask(__name__, template_folder='template')
+
+
+@app.route('/upload') #return a json obj
+def upload_file():
+   return render_template('index.html')
+
+
+@app.route('/uploader', methods = ['GET', 'POST'])
+def upload_file2():
+   if request.method == 'POST':
+      #f = request.files['file']
+      #f.save(secure_filename(f.filename))
+      return 'file uploaded successfully'
+#****************************************************************************
 
 # Random generates a password of length n with letters, numbers and symbols.
 def passwordgenerator(n=100):
@@ -36,6 +54,7 @@ def readkey():
 
 
 # First encodes a random genned password, and then encrypts with the key written to key.key
+#use and store a hash of a password in the DB and compare if they match for signin
 def encryptpassword():
     plength = input("How long would you like the password to be? ")
     message = passwordgenerator(int(plength)).encode()
@@ -68,6 +87,7 @@ def addaccount(db):
         'password': encryptpassword(),
         'status': 'true'
     }
+    
     # Check if user already made an account for this email
     if (db.account.find_one({'email': accountobject.get('email')})):
         print("An account for this website already exists.")
@@ -104,7 +124,6 @@ def printaccounts(db):
     for i in listaccounts:
         print(i.get('email'))
 
-
 def main():
     db = connectdb()
     print("-------------------------------------------")
@@ -124,6 +143,10 @@ def main():
             Signin(db)
             
             
+            #flask server is on localhost:5000
+            #use fetch command in JS
+            
+            
             #if usernames match
                 #os.system('npm start')
             
@@ -138,4 +161,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    app.run()
+    main() #flask should be running in background
