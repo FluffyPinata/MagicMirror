@@ -127,13 +127,11 @@ def printaccounts(db):
 def main():
     db = connectdb()
     print("-------------------------------------------")
-    print("Welcome to the password manager!")
     print("Manager supports the following commands:")
     print("Addaccount - adds an account using a email, a username, and a randomly generated password.")
     print("Signin - will retrieve the password from the database for usage.")
     print("Deleteaccount - will delete a saved account from the database.")
-    print("Printaccounts - will print all websites which have an active account.")
-    print("quit - quits application.")
+    print("quit - quits application.")  #will just be a button eventually so can get rid of
     print("-------------------------------------------")
     while (1):
         choice = input("$: ")
