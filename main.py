@@ -13,6 +13,17 @@ from pymongo import MongoClient
 from pprint import pprint
 app = Flask(__name__, template_folder='template')
 
+@app.route('/login')
+def login_route():
+    db = connectdb()
+    #need to create login page?
+    return 0;
+
+@app.route('/createaccount')
+def create_account_route():
+    db = connectdb()
+    #need to account creation page?
+    return 0;
 
 @app.route('/upload') #return a json obj
 def upload_file():
@@ -160,4 +171,4 @@ def main():
 
 if __name__ == '__main__':
     app.run()
-    main() #flask should be running in background
+    #main() #flask should be running in background
