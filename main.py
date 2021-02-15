@@ -112,11 +112,13 @@ def addaccount(db):
 
 # Retrieves the password from the database based on email
 def Signin(db):
+    f = Fernet(readkey())
     email = input("Please enter the email you want the password for: ")
-    if (db.account.find_one({'email': email})):
-        encodeddata = db.account.find_one({'email': email})
+    encrypted_email = f.encrypt(email.encode())
+    if (db.account.find_one({'email': encrypted_email})):
+        encodeddata = db.account.find_one({'email': encrypted_email})
         presult = decryptpassword(encodeddata.get('password'))
-        uresult = encodeddata.get('username')
+        uresult = f.decrypt(encodeddata.get('username')).decode()
         print("Your username is: " + uresult)
         print("Your password is: " + presult)
         
@@ -133,10 +135,11 @@ def deleteaccount(db):
 
 
 def printaccounts(db):
+    f = Fernet(readkey())
     print("Here are all email which have an account:")
     listaccounts = db.account.find()
     for i in listaccounts:
-        print(i.get('email'))
+        print(f.decrypt(i.get('email')).decode())
 
 def main():
     db = connectdb()
