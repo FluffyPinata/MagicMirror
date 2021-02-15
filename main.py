@@ -128,7 +128,8 @@ def Signin(db):
 
 def deleteaccount(db):
     email = input("Please enter the email you want to delete the account for: ")
-    if (db.account.delete_one({'email': email}).deleted_count != 0):
+    encrypted_email = f.encrypt(email.encode())
+    if (db.account.delete_one({'email': encrypted_email}).deleted_count != 0):
         print("Successfully deleted account for " + email)
     else:
         print("Could not find account for " + email)
