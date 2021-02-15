@@ -90,11 +90,14 @@ def connectdb():
 
 # Adds a email account to the database
 def addaccount(db):
+    f = Fernet(readkey())
     email = input("Please enter the email you have the account for: ")
+    encrypted_email = f.encrypt(email.encode())
     username = input("Please enter the username for the account: ")
+    encrypted_username = f.encrypt(username.encode())
     accountobject = {
-        'email': email,
-        'username': username,
+        'email': encrypted_email,
+        'username': encrypted_username,
         'password': encryptpassword(),
         'status': 'true'
     }
