@@ -13,18 +13,6 @@ from pymongo import MongoClient
 from pprint import pprint
 app = Flask(__name__, template_folder='template')
 
-@app.route('/login')
-def login_route():
-    db = connectdb()
-    #need to create login page?
-    return 0;
-
-@app.route('/createaccount')
-def create_account_route():
-    db = connectdb()
-    #need to account creation page?
-    return 0;
-
 @app.route('/upload') #return a json obj
 def upload_file():
    return render_template('index.html')
@@ -38,47 +26,19 @@ def upload_file2():
       return 'file uploaded successfully'
 #****************************************************************************
 
-# Random generates a password of length n with letters, numbers and symbols.
-def passwordgenerator(n=100):
-    return ''.join(secrets.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(n))
-
-
-# Creates a key which we can use to encrypt/decrypt
-def makekey():
-    key = Fernet.generate_key()
-    return key;
-
-
-# Writes a generated key to a file called key.key
-def writekey():
-    file = open('key.key', 'wb')
-    file.write(makekey())
-    file.close()
-
-
-# Reads written key from key.key
-def readkey():
-    file = open('key.key', 'rb')
-    key = file.read()
-    file.close()
-    return key
-
-
 # First encodes a random genned password, and then encrypts with the key written to key.key
 #use and store a hash of a password in the DB and compare if they match for signin
 def encryptpassword():
-    plength = input("How long would you like the password to be? ")
-    message = passwordgenerator(int(plength)).encode()
-    f = Fernet(readkey())
-    encrypted = f.encrypt(message)
+    #change this to input password
+    password = input("What would you like your password to be?")
     return encrypted
 
 
 # First decrypts the file based on the key written to key.key, then decodes to get original password.
-def decryptpassword(encryptedpassword = ""):
-    f = Fernet(readkey())
-    decrypted = f.decrypt(encryptedpassword).decode()
-    return decrypted
+#def decryptpassword(encryptedpassword = ""):
+#    f = Fernet(readkey())
+#    decrypted = f.decrypt(encryptedpassword).decode()
+#    return decrypted
 
 
 # Connects to the MongoDB and returns the connection.
@@ -90,6 +50,8 @@ def connectdb():
 
 # Adds a email account to the database
 def addaccount(db):
+    #add one way hash and compare passwords
+    #add location to this later
     f = Fernet(readkey())
     email = input("Please enter the email you have the account for: ")
     encrypted_email = f.encrypt(email.encode())
@@ -112,6 +74,7 @@ def addaccount(db):
 
 # Retrieves the password from the database based on email
 def Signin(db):
+    #upload login details in file to flask after successful login
     f = Fernet(readkey())
     email = input("Please enter the email you want the password for: ")
     encrypted_email = f.encrypt(email.encode())
@@ -177,5 +140,5 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run()
-    #main() #flask should be running in background
+    #app.run()
+    main() #flask should be running in background
