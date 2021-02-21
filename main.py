@@ -11,6 +11,11 @@ from flask import Flask, render_template, request
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
 from pprint import pprint
+import urllib
+from urllib.request import urlopen
+import socket
+#for getting user location
+from contextlib import closing
 app = Flask(__name__, template_folder='template')
 
 @app.route('/upload') #return a json obj
@@ -32,13 +37,18 @@ def hashpassword():
     encrypted = hash(password)
     return encrypted
 
-
-# First decrypts the file based on the key written to key.key, then decodes to get original password.
-#def decryptpassword(encryptedpassword = ""):
-#    f = Fernet(readkey())
-#    decrypted = f.decrypt(encryptedpassword).decode()
-#    return decrypted
-
+def getlocation():
+    fqn = socket.getfqdn()
+    user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+    headers = {'User-Agent':user_agent,}
+    url = 'https://ident.me'
+    request = urllib.request.Request(url,None,headers) #The assembled request
+    ext_ip = urlopen(request).read().decode("utf8")
+    print ("Asset: %s " % fqn, "Checking in from IP#: %s " % ext_ip)
+    url = 'http://ip-api.com/json/' + ext_ip
+    req = urllib.request.Request(url)
+    out = urllib.request.urlopen(req).read().decode("utf8")
+    return out
 
 # Connects to the MongoDB and returns the connection.
 def connectdb():
@@ -54,10 +64,12 @@ def addaccount(db):
     email = input("Please enter the email you have the account for: ")
     username = input("Please enter the username for the account: ")
     hashed_password = hashpassword()
+    location = getlocation()
     accountobject = {
         'email': email,
         'username': username,
         'password': hashed_password,
+        'location': location,
         'status': 'true'
     }
     
