@@ -26,11 +26,10 @@ def upload_file2():
       return 'file uploaded successfully'
 #****************************************************************************
 
-# First encodes a random genned password, and then encrypts with the key written to key.key
-#use and store a hash of a password in the DB and compare if they match for signin
-def encryptpassword():
+def hashpassword():
     #change this to input password
     password = input("What would you like your password to be?")
+    encrypted = hash(password)
     return encrypted
 
 
@@ -52,15 +51,13 @@ def connectdb():
 def addaccount(db):
     #add one way hash and compare passwords
     #add location to this later
-    f = Fernet(readkey())
     email = input("Please enter the email you have the account for: ")
-    encrypted_email = f.encrypt(email.encode())
     username = input("Please enter the username for the account: ")
-    encrypted_username = f.encrypt(username.encode())
+    hashed_password = hashpassword()
     accountobject = {
-        'email': encrypted_email,
-        'username': encrypted_username,
-        'password': encryptpassword(),
+        'email': email,
+        'username': username,
+        'password': hashed_password,
         'status': 'true'
     }
     
@@ -68,42 +65,41 @@ def addaccount(db):
     if (db.account.find_one({'email': accountobject.get('email')})):
         print("An account for this website already exists.")
     else:
-        result = db.account.insert_one(accountobject)
+        db.account.insert_one(accountobject)
         print("Account successfully created.")
 
 
 # Retrieves the password from the database based on email
-def Signin(db):
+def signin(db):
     #upload login details in file to flask after successful login
-    f = Fernet(readkey())
-    email = input("Please enter the email you want the password for: ")
-    encrypted_email = f.encrypt(email.encode())
-    if (db.account.find_one({'email': encrypted_email})):
-        encodeddata = db.account.find_one({'email': encrypted_email})
-        presult = decryptpassword(encodeddata.get('password'))
-        uresult = f.decrypt(encodeddata.get('username')).decode()
-        print("Your username is: " + uresult)
-        print("Your password is: " + presult)
+    username = input("Please enter your username: ")
+    password = input("Please enter your password: ")
+    hashed_password = hash(password)
+    if (db.account.find_one({'username': username})):
+        account_info = db.account.find_one({'username': username})
+        account_phash = account_info.get('password')
+        if (account_phash == hashed_password):
+            print("Passwords match, successfully logged in")
+        else:
+            print("Login failed, passwords don't match")
         
     else:
-        print("Couldn't find an account for that website.")
+        print("Couldn't find an account with that username")
 
 
 def deleteaccount(db):
     email = input("Please enter the email you want to delete the account for: ")
-    encrypted_email = f.encrypt(email.encode())
-    if (db.account.delete_one({'email': encrypted_email}).deleted_count != 0):
+    if (db.account.delete_one({'email': email}).deleted_count != 0):
         print("Successfully deleted account for " + email)
     else:
         print("Could not find account for " + email)
 
 
 def printaccounts(db):
-    f = Fernet(readkey())
-    print("Here are all email which have an account:")
+    print("Here are all emails which have an account:")
     listaccounts = db.account.find()
     for i in listaccounts:
-        print(f.decrypt(i.get('email')).decode())
+        print(i.get('email'))
 
 def main():
     db = connectdb()
@@ -119,7 +115,7 @@ def main():
         if (choice == "addaccount"):
             addaccount(db)
         elif (choice == "Signin"): #just need to return true 
-            Signin(db)
+            signin(db)
             
             
             #flask server is on localhost:5000
