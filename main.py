@@ -8,28 +8,68 @@ import cryptography
 import flask
 from flask_socketio import SocketIO
 from flask import Flask, render_template, request
+from flask import flash, redirect, url_for, send_from_directory
+from werkzeug.utils import secure_filename
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
 from pprint import pprint
 import urllib
 from urllib.request import urlopen
+import ast
 import socket
 #for getting user location
 from contextlib import closing
-app = Flask(__name__, template_folder='template')
 
-@app.route('/upload') #return a json obj
+UPLOAD_FOLDER = './'
+ALLOWED_EXTENSIONS = {'txt'}
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/', methods=['GET', 'POST'])
 def upload_file():
-   return render_template('index.html')
-
-
-@app.route('/uploader', methods = ['GET', 'POST'])
-def upload_file2():
-   if request.method == 'POST':
-      #f = request.files['file']
-      #f.save(secure_filename(f.filename))
-      return 'file uploaded successfully'
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            file.save(os.path.join(basedir, app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('uploaded_file',
+                                    filename=filename))
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
+    '''
+    
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
 #****************************************************************************
+      
+def print_to_file(username, location, status):
+    f = open("logininfo.txt", "w")
+    f.write(str(username) + "\n" + str(location) + "\n" + str(status) + "\n")
+    f.close()
+    return 0
 
 def hashpassword():
     #change this to input password
@@ -48,7 +88,13 @@ def getlocation():
     url = 'http://ip-api.com/json/' + ext_ip
     req = urllib.request.Request(url)
     out = urllib.request.urlopen(req).read().decode("utf8")
-    return out
+    #Country/State/City
+    dict_out = ast.literal_eval(out)
+    country = dict_out['country']
+    state = dict_out['regionName']
+    city = dict_out['city']
+    location_dict = {'country': country, 'state': state, 'city': city}
+    return location_dict
 
 # Connects to the MongoDB and returns the connection.
 def connectdb():
@@ -64,7 +110,11 @@ def addaccount(db):
     email = input("Please enter the email you have the account for: ")
     username = input("Please enter the username for the account: ")
     hashed_password = hashpassword()
-    location = getlocation()
+    answer_location = input("Would you like us to use your location for convience and other applications?")
+    if (answer_location == "yes"):
+        location = getlocation()
+    else:
+        location = {'country': 'null', 'state': 'null', 'city': 'null'}
     accountobject = {
         'email': email,
         'username': username,
@@ -90,7 +140,10 @@ def signin(db):
     if (db.account.find_one({'username': username})):
         account_info = db.account.find_one({'username': username})
         account_phash = account_info.get('password')
+        account_location = account_info.get('location')
+        account_status = account_info.get('status')
         if (account_phash == hashed_password):
+            print_to_file(username, account_location, account_status)
             print("Passwords match, successfully logged in")
         else:
             print("Login failed, passwords don't match")
@@ -117,16 +170,16 @@ def main():
     db = connectdb()
     print("-------------------------------------------")
     print("Manager supports the following commands:")
-    print("Addaccount - adds an account using a email, a username, and a randomly generated password.")
+    print("Signup - adds an account using a email, a username, and a randomly generated password.")
     print("Signin - will retrieve the password from the database for usage.")
     print("Deleteaccount - will delete a saved account from the database.")
     print("quit - quits application.")  #will just be a button eventually so can get rid of
     print("-------------------------------------------")
     while (1):
         choice = input("$: ")
-        if (choice == "addaccount"):
+        if (choice == "signup"):
             addaccount(db)
-        elif (choice == "Signin"): #just need to return true 
+        elif (choice == "signin"): #just need to return true 
             signin(db)
             
             
@@ -148,5 +201,5 @@ def main():
 
 
 if __name__ == '__main__':
-    #app.run()
+    app.run()
     main() #flask should be running in background
