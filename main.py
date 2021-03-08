@@ -77,6 +77,10 @@ def hashpassword():
     encrypted = hash(password)
     return encrypted
 
+def p_hashpassword(password):
+    encrypted = hash(password)
+    return encrypted
+
 def getlocation():
     fqn = socket.getfqdn()
     user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
@@ -129,6 +133,28 @@ def addaccount(db):
     else:
         db.account.insert_one(accountobject)
         print("Account successfully created.")
+        
+# Answer location is yes if getting location allowed, anything else will result in not gettin it
+def p_addaccount(db, email, username, password, answer_location):
+    hashed_password = p_hashpassword(password)
+    if (answer_location == "yes"):
+        location = getlocation()
+    else:
+        location = {'country': 'null', 'state': 'null', 'city': 'null'}
+    accountobject = {
+        'email': email,
+        'username': username,
+        'password': hashed_password,
+        'location': location,
+        'status': 'true'
+    }
+    
+    # Check if user already made an account for this email
+    if (db.account.find_one({'email': accountobject.get('email')})):
+        print("An account for this website already exists.")
+    else:
+        db.account.insert_one(accountobject)
+        print("Account successfully created.")
 
 
 # Retrieves the password from the database based on email
@@ -145,15 +171,45 @@ def signin(db):
         if (account_phash == hashed_password):
             print_to_file(username, account_location, account_status)
             print("Passwords match, successfully logged in")
+            return True
         else:
             print("Login failed, passwords don't match")
+            return False
         
     else:
         print("Couldn't find an account with that username")
+        return False
+        
+def p_signin(db, username, password):
+    #upload login details in file to flask after successful login
+    hashed_password = p_hashpassword(password)
+    if (db.account.find_one({'username': username})):
+        account_info = db.account.find_one({'username': username})
+        account_phash = account_info.get('password')
+        account_location = account_info.get('location')
+        account_status = account_info.get('status')
+        if (account_phash == hashed_password):
+            print_to_file(username, account_location, account_status)
+            print("Passwords match, successfully logged in")
+            return True
+        else:
+            print("Login failed, passwords don't match")
+            return False
+        
+    else:
+        print("Couldn't find an account with that username")
+        return False
+
 
 
 def deleteaccount(db):
     email = input("Please enter the email you want to delete the account for: ")
+    if (db.account.delete_one({'email': email}).deleted_count != 0):
+        print("Successfully deleted account for " + email)
+    else:
+        print("Could not find account for " + email)
+        
+def p_deleteaccount(db, email):
     if (db.account.delete_one({'email': email}).deleted_count != 0):
         print("Successfully deleted account for " + email)
     else:
