@@ -114,7 +114,9 @@ def addaccount(db):
     #add location to this later
     email = input("Please enter the email you have the account for: ")
     username = input("Please enter the username for the account: ")
-    hashed_password = hashpassword()
+    password = input("Please enter the password for the account: ")
+    var = password.encode('ascii')
+    hashed_password = hashlib.sha224(var).hexdigest()
     answer_location = input("Would you like us to use your location for convience and other applications?")
     if (answer_location == "yes"):
         location = getlocation()
@@ -137,7 +139,10 @@ def addaccount(db):
         
 # Answer location is yes if getting location allowed, anything else will result in not gettin it
 def p_addaccount(db, email, username, password, answer_location):
-    hashed_password = p_hashpassword(password)
+    
+    var = password.encode('ascii')
+    hashed_password = hashlib.sha224(var).hexdigest()
+    
     if (answer_location == "yes"):
         location = getlocation()
     else:
@@ -163,7 +168,8 @@ def signin(db):
     #upload login details in file to flask after successful login
     username = input("Please enter your username: ")
     password = input("Please enter your password: ")
-    hashed_password = hash(password)
+    var = password.encode('ascii')
+    hashed_password = hashlib.sha224(var).hexdigest()
     if (db.account.find_one({'username': username})):
         account_info = db.account.find_one({'username': username})
         account_phash = account_info.get('password')
@@ -265,5 +271,5 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run()
+    #app.run()
     main() #flask should be running in background
