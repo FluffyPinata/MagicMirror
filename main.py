@@ -1,5 +1,6 @@
 #mongo cluster info: https://cloud.mongodb.com/v2/5cbf6a95cf09a2b538fb0bb3#metrics/replicaSet/600de9d9a6646f6c0026b348/explorer/passwordobjects/account/find
 #using nodejs and flask to communicate information
+import hashlib
 import string
 import secrets
 import os
@@ -182,12 +183,19 @@ def signin(db):
         
 def p_signin(db, username, password):
     #upload login details in file to flask after successful login
-    hashed_password = p_hashpassword(password)
+
+    #hashed_password = hash(password)
+    var = password.encode('ascii')
+    hashed_password = hashlib.sha224(var).hexdigest()
+    print(hashed_password)
+
     if (db.account.find_one({'username': username})):
         account_info = db.account.find_one({'username': username})
         account_phash = account_info.get('password')
         account_location = account_info.get('location')
         account_status = account_info.get('status')
+        print("username entered is:" + username)
+        print("password entered is:" + password)
         if (account_phash == hashed_password):
             print_to_file(username, account_location, account_status)
             print("Passwords match, successfully logged in")

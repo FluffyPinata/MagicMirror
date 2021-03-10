@@ -1,11 +1,15 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton
+from main import *
 import sys
 
 
 class CreateAccountWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.top = 100
+        self.left = 100
+        self.setFixedSize(680, 500)
         self.setWindowTitle("Create Account")
 
         self.firstname = QLabel("First Name:", self)
@@ -52,6 +56,7 @@ class SignInWindow(QMainWindow):
         self.width = 680
         self.height = 500
 
+        self.db = connectdb()
         self.username = QLabel('Username:', self)
         self.password = QLabel('Password:', self)
         self.username_edit = QLineEdit(self)
@@ -67,7 +72,7 @@ class SignInWindow(QMainWindow):
         self.btn_sign_in.move(30, 150)
         self.btn_create_account.move(100, 150)
 
-        self.btn_sign_in.clicked.connect(lambda: self.showDialog())
+        self.btn_sign_in.clicked.connect(lambda: self.signIn())
         self.btn_create_account.clicked.connect(lambda: self.create_account_window())
         self.sign_in_window()
 
@@ -81,8 +86,8 @@ class SignInWindow(QMainWindow):
         self.w.show()
         self.hide()
 
-    def showDialog(self):
-        print("Username entered: ", self.username_edit.text(), "\nPassword entered: ", self.password_edit.text(), "\n")
+    def signIn(self):
+        p_signin(self.db, self.username_edit.text(), self.password_edit.text())
 
 
 def main():
@@ -92,4 +97,7 @@ def main():
 
 
 if __name__ == '__main__':
+    print("Before turning off hash randomization")
+    os.environ["PYTHONHASHSEED"] = "0"
+    print("After turning off hash randomization")
     main()
