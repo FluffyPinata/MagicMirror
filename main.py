@@ -147,13 +147,13 @@ def p_addaccount(db, email, username, password, answer_location):
         location = getlocation()
     else:
         location = {'country': 'null', 'state': 'null', 'city': 'null'}
-    accountobject = {
-        'email': email,
-        'username': username,
-        'password': hashed_password,
-        'location': location,
-        'status': 'true'
-    }
+        accountobject = {
+            'email': email,
+            'username': username,
+            'password': hashed_password,
+            'location': location,
+            'status': 'true'
+        }
     
     # Check if user already made an account for this email
     if (db.account.find_one({'email': accountobject.get('email')})):
