@@ -65,6 +65,10 @@ class CreateAccountWindow(QMainWindow):
             print("Location gathering not allowed\n")
             p_addaccount(self.db, self.email_edit.text(), self.username_edit.text(), self.password_edit.text(), "no")
 
+        self.w = SignInWindow()
+        self.w.show()
+        self.hide()
+
     def onStateChange(self, state):
         if state == Qt.Checked:
             if self.sender() == self.locationNo:
