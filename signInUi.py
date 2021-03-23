@@ -118,7 +118,9 @@ class SignInWindow(QMainWindow):
         self.hide()
 
     def signIn(self):
-        p_signin(self.db, self.username_edit.text(), self.password_edit.text())
+        signedIn = p_signin(self.db, self.username_edit.text(), self.password_edit.text())
+        if signedIn:
+            #os.system('npm start')
 
 
 def main():
@@ -128,7 +130,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Before turning off hash randomization")
     os.environ["PYTHONHASHSEED"] = "0"
-    print("After turning off hash randomization")
     main()
