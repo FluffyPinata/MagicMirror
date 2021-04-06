@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QCheckBox, QHBoxLayout
+from PyQt5.QtCore import *
 from main import *
 import sys
 
@@ -7,10 +8,12 @@ import sys
 class CreateAccountWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.db = connectdb()
         self.top = 100
         self.left = 100
         self.setFixedSize(680, 500)
         self.setWindowTitle("Create Account")
+        layout = QHBoxLayout()
 
         self.firstname = QLabel("First Name:", self)
         self.lastname = QLabel("Last Name:", self)
@@ -23,6 +26,14 @@ class CreateAccountWindow(QMainWindow):
         self.username_edit = QLineEdit(self)
         self.password_edit = QLineEdit(self)
         self.password_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.location = QLabel("Collect Location Information?", self)
+        self.location.adjustSize()
+        self.locationYes = QCheckBox("Yes", self)
+        self.locationNo = QCheckBox("No", self)
+        self.locationNo.stateChanged.connect(self.onStateChange)
+        self.locationYes.stateChanged.connect(self.onStateChange)
+        self.locationNo.setChecked(True)
+
         self.btn_create_account = QPushButton("Create Account", self)
 
         self.firstname.move(30, 50)
@@ -35,7 +46,10 @@ class CreateAccountWindow(QMainWindow):
         self.username_edit.move(100, 200)
         self.password.move(30, 250)
         self.password_edit.move(100, 250)
-        self.btn_create_account.move(30, 300)
+        self.location.move(30, 300)
+        self.locationYes.move(100, 350)
+        self.locationNo.move(150, 350)
+        self.btn_create_account.move(30, 400)
 
         self.btn_create_account.clicked.connect(lambda: self.createAccount())
 
@@ -44,6 +58,23 @@ class CreateAccountWindow(QMainWindow):
         print("Email Address: ", self.email_edit.text(), "\n")
         print("Username selected: ", self.username_edit.text(), "\n")
         print("Password entered: ", self.password_edit.text(), "\n")
+        if self.locationYes.isChecked():
+            print("Location gathering allowed\n")
+            p_addaccount(self.db, self.email_edit.text(), self.username_edit.text(), self.password_edit.text(), "yes")
+        elif self.locationNo.isChecked():
+            print("Location gathering not allowed\n")
+            p_addaccount(self.db, self.email_edit.text(), self.username_edit.text(), self.password_edit.text(), "no")
+
+        self.w = SignInWindow()
+        self.w.show()
+        self.hide()
+
+    def onStateChange(self, state):
+        if state == Qt.Checked:
+            if self.sender() == self.locationNo:
+                self.locationYes.setChecked(False)
+            elif self.sender() == self.locationYes:
+                self.locationNo.setChecked(False)
 
 
 
@@ -87,7 +118,9 @@ class SignInWindow(QMainWindow):
         self.hide()
 
     def signIn(self):
-        p_signin(self.db, self.username_edit.text(), self.password_edit.text())
+        signedIn = p_signin(self.db, self.username_edit.text(), self.password_edit.text())
+        if signedIn:
+            #os.system('npm start')
 
 
 def main():
@@ -97,7 +130,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Before turning off hash randomization")
     os.environ["PYTHONHASHSEED"] = "0"
-    print("After turning off hash randomization")
     main()
