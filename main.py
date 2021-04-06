@@ -18,53 +18,18 @@ import urllib
 from urllib.request import urlopen
 import ast
 import socket
+import requests
 #for getting user location
 from contextlib import closing
 
-UPLOAD_FOLDER = './'
-ALLOWED_EXTENSIONS = {'txt'}
-
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route('/', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            basedir = os.path.abspath(os.path.dirname(__file__))
-            file.save(os.path.join(basedir, app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=filename))
-    return '''
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    '''
-    
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)
-#****************************************************************************
+from flask import Flask, render_template 
+ 
+app = Flask(__name__) 
+ 
+@app.route('/') 
+def content(): 
+	with open("logininfo.txt", 'r') as f: 
+		return render_template("content.html", text=f.read()) 
       
 def print_to_file(username, location, status):
     f = open("logininfo.txt", "w")
@@ -117,7 +82,7 @@ def addaccount(db):
     password = input("Please enter the password for the account: ")
     var = password.encode('ascii')
     hashed_password = hashlib.sha224(var).hexdigest()
-    answer_location = input("Would you like us to use your location for convience and other applications?")
+    answer_location = input("Would you like us to use your location for convenience and other applications?")
     if (answer_location == "yes"):
         location = getlocation()
     else:
@@ -147,13 +112,13 @@ def p_addaccount(db, email, username, password, answer_location):
         location = getlocation()
     else:
         location = {'country': 'null', 'state': 'null', 'city': 'null'}
-    accountobject = {
-        'email': email,
-        'username': username,
-        'password': hashed_password,
-        'location': location,
-        'status': 'true'
-    }
+        accountobject = {
+            'email': email,
+            'username': username,
+            'password': hashed_password,
+            'location': location,
+            'status': 'true'
+        }
     
     # Check if user already made an account for this email
     if (db.account.find_one({'email': accountobject.get('email')})):
@@ -248,17 +213,24 @@ def main():
     while (1):
         choice = input("$: ")
         if (choice == "signup"):
-            addaccount(db)
+            created = addaccount(db)
+            if created:
+                print("account created\n")
+
         elif (choice == "signin"): #just need to return true 
-            signin(db)
+            signedIn = signin(db)
             
             
             #flask server is on localhost:5000
             #use fetch command in JS
             
             
-            #if usernames match
+            if signedIn:
+                print("signed in successfully\n")
                 #os.system('npm start')
+            app.run()
+            r = requests.post("http://localhost:5000/", data={'number': 12524, 'type': 'issue', 'action': 'show'})
+            print(r.status_code, r.reason)
             
         elif (choice == "deleteaccount"):
             deleteaccount(db)
